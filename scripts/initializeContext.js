@@ -1,6 +1,4 @@
-// content.js
-
-console.log("Content script is running.");
+console.log("Initializing interview context");
 
 // Function to simulate a key press event
 function injectPrompt() {
