@@ -3,10 +3,11 @@
     "name": "GPT Interview Buddy",
     "version": "1.0",
     "description": "Your best friend for tech job interview prep, offering tailored advice and feedback.",
-    "permissions": ["activeTab"],
+    "permissions": ["activeTab", "tabs"],
     "action": {
       "default_icon": {
         "16": "icons/icon-16.png",
+        "32": "icons/icon-32.png",
         "48": "icons/icon-48.png",
         "128": "icons/icon-128.png"
       },
@@ -17,14 +18,9 @@
     },
     "content_scripts": [
       {
-        "matches": ["<all_urls>"],
+        "matches": ["https://chat.openai.com/*"],
         "js": ["content.js"]
       }
-    ],
-    "icons": {
-      "16": "icons/icon-16.png",
-      "48": "icons/icon-48.png",
-      "128": "icons/icon-128.png"
-    }
+    ]
   }
   
