@@ -1,32 +1,32 @@
-// Initialize the interview state when the extension is first loaded
 chrome.runtime.onInstalled.addListener(() => {
-    updateInterviewState('not_started');
+    chrome.storage.local.set({ interviewState: 'not_started' });
 });
 
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    switch (message.action) {
-        case 'startInterview':
-            startInterview();
-            updateInterviewState("not_uploaded_background");
-            break;
-        case 'showAddBackgroundInputs': 
-            updateInterviewState("adding_background");
-        default: 
-            break;
-    } 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === "openChat") {
+        chrome.tabs.create({ url: 'https://chat.openai.com/' }, function(tab) {
+            // Listen for the tab update to complete loading
+            chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, tab) {
+                if (tabId === tab.id && changeInfo.status === 'complete') {
+                    // Now the tab is ready, inject the script and send the message
+                    injectPromptViaContentScript("Let's start an interview");
+                }
+            });
+        });
+    } else if (request.action === "addJobDescription") {
+        injectPromptViaContentScript("Here's the job description:");
+    }
 });
 
-function startInterview() {
-    chrome.tabs.create({ url: 'https://chat.openai.com/' }, function (tab) {
-        // content.js will be executed according to configuration in manifest.json
+function injectPromptViaContentScript(text) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        // Inject the content script into the active tab
+        chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            files: ['scripts/content.js']
+        }, () => {
+            // Send a message to the content script with the job description
+            chrome.tabs.sendMessage(tabs[0].id, { action: "injectText", text: text  });
+        });
     });
 }
-
-function updateInterviewState(newState) {
-    chrome.storage.local.set({ interviewState: newState });
-}
-
-
-
-
-  

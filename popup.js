@@ -1,80 +1,82 @@
-// Retrieve the interview state and update the UI
-chrome.storage.local.get('interviewState', (data) => {
-    const interviewState = data.interviewState;
-    updatePopupUI(interviewState);
-  });
-  
-  document.addEventListener('DOMContentLoaded', function () {
-    const startInterviewButton = document.getElementById('startButton');
-    const addBackgroundButton = document.getElementById('addBackgroundButton');
-    const uploadResumeButton = document.getElementById('uploadResumeButton');
-    const scriptButtons = document.querySelectorAll('.scriptButton');
-    
-    startInterviewButton.addEventListener('click', function () {
-      chrome.runtime.sendMessage({ action: 'startInterview' });
-    });
+const startInterviewBtn = document.getElementById('startInterview');
+const uploadResumeBtn = document.getElementById('uploadResume');
+const addJobDescBtn = document.getElementById('addJobDesc');
+const startProcessBtn = document.getElementById('startProcess');
 
-    addBackgroundButton.addEventListener('click', function () {
-        chrome.runtime.sendMessage({ action: 'showAddBackgroundInputs' });
-        updatePopupUI('adding_background');
-    });
-    
-    // Loop through scriptButtons and add event listeners
-    scriptButtons.forEach((button, index) => {
-      button.addEventListener('click', function () {
-        // Handle click event for script buttons
-        console.log(`Script button ${index + 1} clicked.`);
-        // You can perform specific actions for each script button here
-      });
-    });
-  });
-  
-  // Function to update the popup UI based on the interview state
-  function updatePopupUI(interviewState) {
-    const startInterviewButton = document.getElementById('startButton');
-    const addBackgroundButton = document.getElementById('addBackgroundButton');
-    const scriptButtons = document.querySelectorAll('.scriptButton');
-  
-    switch (interviewState) {
+document.addEventListener('DOMContentLoaded', function() {
+  startInterviewBtn.addEventListener('click', startInterview);
+  uploadResumeBtn.addEventListener('click', uploadResume);
+  addJobDescBtn.addEventListener('click', addJobDescription);
+  startProcessBtn.addEventListener('click', startProcess);
+
+  updateUI();
+});
+
+function updateUI() {
+  // Check the current state when popup is opened
+  chrome.storage.local.get(['interviewState'], function(result) {
+    switch (result.interviewState) {
       case 'not_started':
-        showElement(startInterviewButton);
-        hideElement(addBackgroundButton);
-        hideElements(scriptButtons);
+        showElement(startInterviewBtn);
+        hideElement(uploadResumeBtn);
+        hideElement(addJobDescBtn);
         break;
-      case 'not_uploaded_background':
-        showElement(addBackgroundButton);
-        hideElement(startInterviewButton);
-        hideElements(scriptButtons);
+      case 'uploading_info': 
+        hideElement(startInterviewBtn);
+        showElement(uploadResumeBtn);
+        showElement(addJobDescBtn);
         break;
-      case 'adding_background':
-        showElements(scriptButtons);
-        hideElement(startInterviewButton);
-        hideElement(addBackgroundButton);
-      // Add more cases for other states as needed
+      default:
+        break;
     }
-  }
-  
-  // Function to show an element
-  function showElement(element) {
-    element.style.display = 'block';
-  }
-  
-  // Function to hide an element
-  function hideElement(element) {
-    element.style.display = 'none';
-  }
-  
-  // Function to show multiple elements
-  function showElements(elements) {
-    elements.forEach((element) => {
-      element.style.display = 'block';
-    });
-  }
-  
-  // Function to hide multiple elements
-  function hideElements(elements) {
-    elements.forEach((element) => {
-      element.style.display = 'none';
-    });
-  }
-  
+  });
+}
+
+// Function to show an element
+function showElement(element) {
+  element.style.display = 'block';
+}
+
+// Function to hide an element
+function hideElement(element) {
+  element.style.display = 'none';
+}
+
+// Function to show multiple elements
+function showElements(elements) {
+  elements.forEach(element => {
+      showElement(element);
+  });
+}
+
+function startInterview() {
+  // Logic to open new tab and inject "Let's start an interview" into chatbox
+  chrome.runtime.sendMessage({ action: "openChat" });
+  chrome.storage.local.set({ interviewState: 'uploading_info' });
+}
+
+function uploadResume() {
+  // Logic for resume upload and text extraction
+  document.getElementById('resumeUpload').click();
+}
+
+function handleResumeUpload(event) {
+
+}
+
+function addJobDescription() {
+  chrome.runtime.sendMessage({ action: "addJobDescription" });
+  chrome.storage.local.set({ interviewState: 'uploading_info' });
+}
+
+function startProcess() {
+  // Logic for starting the interview process
+  // Hide all other buttons
+  hideElement(document.getElementById('uploadResume'));
+  hideElement(document.getElementById('addJobDesc'));
+  hideElement(document.getElementById('startProcess'));
+
+  // Show some indication that the interview is in progress
+  // You might want to update this part with your own logic
+  alert('Interview in progress');
+}
