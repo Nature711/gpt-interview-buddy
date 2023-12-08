@@ -15,6 +15,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         });
     } else if (request.action === "addJobDescription") {
         injectPromptViaContentScript("Here's the job description:");
+    } else if (request.action === "uploadResume") {
+        if (request.extractedText) {
+            injectPromptViaContentScript("Here's my resume: " + request.extractedText);
+        }
+    } else if (request.action === "startInterview") {
+        injectPromptViaContentScript("Let's get started");
+    } else if (request.action === "getFeedback") {
+        injectPromptViaContentScript("Give me detailed feedback for my response");
+    } else if (request.action === "getNextQuestion") {
+        injectPromptViaContentScript("Next question");
+    } else if (request.action === "endInterview") {
+        injectPromptViaContentScript("End interview");
     }
 });
 

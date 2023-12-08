@@ -16,5 +16,3 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
 });
 
-// Call the function with the desired prompt
-//injectPrompt("Let's start an interview");

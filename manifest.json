@@ -5,7 +5,8 @@
     "description": "Your best friend for tech job interview prep, offering tailored advice and feedback.",
     "permissions": ["activeTab", "scripting", "storage"],
     "host_permissions": [
-      "https://chat.openai.com/*"
+      "https://chat.openai.com/*",
+      "http://localhost:5000/"
     ],
     "icons": {
       "16": "icons/icon-16.png",
@@ -24,6 +25,10 @@
         "matches": ["https://chat.openai.com/*"],
         "js": ["scripts/content.js"]
       }
-    ]
+    ],
+    
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self';"
+    }
   }
   
