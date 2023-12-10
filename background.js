@@ -1,36 +1,43 @@
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.storage.local.set({ interviewState: 'not_started' });
+    resetState();
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === "openChat") {
-        chrome.tabs.create({ url: 'https://chat.openai.com/' }, function(tab) {
-            // Listen for the tab update to complete loading
-            chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, tab) {
-                if (tabId === tab.id && changeInfo.status === 'complete') {
-                    // Now the tab is ready, inject the script and send the message
-                    injectPromptViaContentScript("Let's start an interview");
-                }
-            });
-        });
-    } else if (request.action === "addJobDescription") {
-        injectPromptViaContentScript("Here's the job description:");
-    } else if (request.action === "uploadResume") {
-        if (request.extractedText) {
-            injectPromptViaContentScript("Here's my resume: " + request.extractedText);
+    if (request.action === "injectText") return; // handled by content.js
+
+    fetch('http://localhost:5000/getPrompt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: request.action }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        const prompt = data.prompt;
+        console.log(request.action);
+        if (request.action === "Unknown action") {
+            return;
         }
-    } else if (request.action === "startInterview") {
-        injectPromptViaContentScript("Let's get started");
-    } else if (request.action === "getFeedback") {
-        injectPromptViaContentScript("Give me detailed feedback for my response");
-    } else if (request.action === "getNextQuestion") {
-        injectPromptViaContentScript("Next question");
-    } else if (request.action === "endInterview") {
-        injectPromptViaContentScript("End interview");
-    }
+        if (request.action === "openChat") {
+            handleOpenChat(prompt);
+        } else if (request.action === "endInterview") {
+            handleEndInterview(prompt);
+        } else if (request.action === "uploadResume") {
+            const resume = request.extractedText;
+            injectPromptViaContentScript(prompt + resume, true);
+        } else if (request.action === "addJobDescription") {
+            injectPromptViaContentScript(prompt, false);
+        } else {
+            injectPromptViaContentScript(prompt, true);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 });
 
-function injectPromptViaContentScript(text) {
+function injectPromptViaContentScript(text, send) {
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         // Inject the content script into the active tab
         chrome.scripting.executeScript({
@@ -38,7 +45,33 @@ function injectPromptViaContentScript(text) {
             files: ['scripts/content.js']
         }, () => {
             // Send a message to the content script with the job description
-            chrome.tabs.sendMessage(tabs[0].id, { action: "injectText", text: text  });
+            chrome.tabs.sendMessage(tabs[0].id, { action: "injectText", text: text, send: send });
         });
     });
 }
+
+function handleOpenChat(prompt) {
+    chrome.tabs.create({ url: 'https://chat.openai.com/' }, function(tab) {
+        // Listen for the tab update to complete loading
+        chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, tab) {
+            if (tabId === tab.id && changeInfo.status === 'complete') {
+                // Now the tab is ready, inject the script and send the message
+                injectPromptViaContentScript(prompt, true);
+                chrome.tabs.onUpdated.removeListener(listener);
+            }
+        });
+    });
+}
+
+function handleEndInterview(prompt) {
+    injectPromptViaContentScript(prompt, true);
+    resetState();
+}
+
+function resetState() {
+    chrome.storage.local.set({ interviewState: 'not_started' });
+    chrome.storage.local.set({ hasResume: false });
+    chrome.storage.local.set({ hasJobDesc: false });
+}
+
+  

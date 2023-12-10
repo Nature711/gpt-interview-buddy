@@ -1,0 +1,10 @@
+{
+    "openChat": 
+    "You're going to help me prepare for a technical interview. You must respond to this prompt by asking me to provide my resume and job description first. I will provide them for you one by one, after receiving one you reply by noticing it and asking me for the another piece of info. Only if you see both pieces of info will we start the actual interview. The content and difficulty of the interview must be customized based on my resume and job description. During the actual interview, you must present only one question at a time. After I respond to the question, you will offer specific feedback, focusing on the relevance and quality of the response in relation to the job requirements. Only after providing feedback on one question will you proceed to the next, ensuring a structured and focused interview experience. At the end of the mock interview, you will give an overall summary of the my performance, highlighting strengths and areas for improvement, and suggesting further learning resources for areas needing more preparation."
+    ,
+    "addJobDescription": "Here's the job description: ",
+    "uploadResume": "Here's my resume: ",
+    "startInterview": "Let's get started",
+    "skipQuestion": "Skip this question and give me a new one",
+    "endInterview": "End interview"
+}

@@ -1,18 +1,14 @@
 const startProcessBtn = document.getElementById('startProcess');
 const uploadResumeBtn = document.getElementById('uploadResume');
 const addJobDescBtn = document.getElementById('addJobDesc');
-const startInterviewBtn = document.getElementById('startInterview');
-const getFeedbackBtn = document.getElementById('getFeedback');
-const nextQuestionBtn = document.getElementById('nextQuestion');
+const skipQuestionBtn = document.getElementById('skipQuestion');
 const endInterviewBtn = document.getElementById('endInterview');
 
 document.addEventListener('DOMContentLoaded', function() {
   startProcessBtn.addEventListener('click', startProcess);
   uploadResumeBtn.addEventListener('click', uploadResume);
   addJobDescBtn.addEventListener('click', addJobDescription);
-  startInterviewBtn.addEventListener('click', startInterview);
-  getFeedbackBtn.addEventListener('click', getFeedback);
-  nextQuestionBtn.addEventListener('click', getNextQuestion);
+  skipQuestionBtn.addEventListener('click', skipQuestion);
   endInterviewBtn.addEventListener('click', endInterview);
 
   updateUI();
@@ -23,16 +19,24 @@ function updateUI() {
   chrome.storage.local.get(['interviewState'], function(result) {
     switch (result.interviewState) {
       case 'not_started':
-        showElement(startInterviewBtn);
+        showElement(startProcessBtn);
+        hideElement(uploadResumeBtn);
+        hideElement(addJobDescBtn);
+        hideElement(skipQuestionBtn);
+        hideElement(endInterviewBtn);
         break;
       case 'uploading_info': 
+        hideElement(startProcessBtn);
         showElement(uploadResumeBtn);
         showElement(addJobDescBtn);
         break;
-      case 'info_ready':
-        showElement(uploadResumeBtn);
-        showElement(addJobDescBtn);
-        showElement(startProcessBtn);
+      case 'interviewing':
+        hideElement(startProcessBtn);
+        hideElement(uploadResumeBtn);
+        hideElement(addJobDescBtn);
+        showElement(skipQuestionBtn);
+        showElement(endInterviewBtn);
+        break;
       default:
         break;
     }
@@ -100,23 +104,14 @@ function checkInfoUpload() {
   chrome.storage.local.get(['hasResume', 'hasJobDesc'], function(result) {
     if (result.hasResume && result.hasJobDesc) {
       // Both indicators are set, show the Start Interview button
-      chrome.storage.local.set({ interviewState: 'info_ready' });
+      chrome.storage.local.set({ interviewState: 'interviewing' });
       updateUI();
     }
   });
 }
 
-function startInterview() {
-  // Logic for starting the interview process
-  chrome.runtime.sendMessage({ action: "startInterview" });
-}
-
-function getFeedback() {
-  chrome.runtime.sendMessage({ action: "getFeedback" });
-}
-
-function getNextQuestion() {
-  chrome.runtime.sendMessage({ action: "getNextQuestion" });
+function skipQuestion() {
+  chrome.runtime.sendMessage({ action: "skipQuestion" });
 }
 
 function endInterview() {
